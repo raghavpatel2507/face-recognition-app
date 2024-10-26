@@ -12,8 +12,8 @@ let personDetectionModel;
 navigator.mediaDevices.getUserMedia({ 
     video: { 
         facingMode: "user", 
-        width: { ideal: 640 }, 
-        height: { ideal: 480 } 
+        width: { ideal: 800 }, 
+        height: { ideal: 800 } 
     } 
 })
 .then(stream => {
@@ -77,20 +77,20 @@ function improveImageQuality(imageData) {
 // Register employee
 // In the register button click event
 registerButton.addEventListener('click', async () => {
-    //ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageData='20241004_171143.jpg'
-    //const imageData = canvas.toDataURL('image/png');
-    console.log(imageData, 'imagedata');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    //const imageData='20241004_171143.jpg'
+    const imageData = canvas.toDataURL('image/png');
+    //console.log(imageData, 'imagedata');
 
     const employeeName = prompt("Enter employee name:");
     console.log("Employee Name:", employeeName);
 
     if (employeeName) {
         const improvedImageData = await improveImageQuality(imageData);
-        console.log("Improved Image Data:", improvedImageData);
+       
 
         const processedImg = await faceapi.fetchImage(improvedImageData);
-        console.log("Processed Image:", processedImg);
+        
         
         const detections = await faceapi.detectSingleFace(processedImg).withFaceLandmarks().withFaceDescriptor();
         console.log("Detections:", detections);
