@@ -75,27 +75,31 @@ function improveImageQuality(imageData) {
 }
 
 // Register employee
+// In the register button click event
 registerButton.addEventListener('click', async () => {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageData = canvas.toDataURL('image/png');
     console.log(imageData, 'imagedata');
+
     const employeeName = prompt("Enter employee name:");
+    console.log("Employee Name:", employeeName);
 
     if (employeeName) {
         const improvedImageData = await improveImageQuality(imageData);
+        console.log("Improved Image Data:", improvedImageData);
 
         const processedImg = await faceapi.fetchImage(improvedImageData);
+        console.log("Processed Image:", processedImg);
+        
         const detections = await faceapi.detectSingleFace(processedImg).withFaceLandmarks().withFaceDescriptor();
-
+        console.log("Detections:", detections);
+        
         if (detections) {
             employees[employeeName] = improvedImageData;
             displayEmployees();
             recognizeButton.disabled = false;
             console.log(`Employee registered: ${employeeName}`);
-
-            // Update face matcher
             faceMatcher = await createFaceMatcher();
-            console.log("Register updated with new employee");
         } else {
             console.warn(`No face detected for ${employeeName}`);
             alert("No face detected. Please try again.");
