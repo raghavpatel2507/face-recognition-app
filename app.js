@@ -8,12 +8,12 @@ let faceMatcher;
 let recognitionActive = false;
 let personDetectionModel;
 
-// Access the webcam with high resolution
+// Access the webcam with the specified resolution for mobile devices
 navigator.mediaDevices.getUserMedia({ 
     video: { 
         facingMode: "user", 
-        width: { ideal: 1280 }, 
-        height: { ideal: 720 } 
+        width: { ideal: 640 }, 
+        height: { ideal: 480 } 
     } 
 })
 .then(stream => {
@@ -190,7 +190,7 @@ async function recognizeFaces() {
     if (detections.length > 0) {
         const resizedDetections = faceapi.resizeResults(detections, { width: video.width, height: video.height });
         const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
-
+       
         results.forEach(result => {
             const [label, distance] = result.toString().split(' ');
             const name = parseFloat(distance.replace("(", "").replace(")", "")) < 0.6 ? label : 'unknown';
