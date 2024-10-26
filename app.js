@@ -77,8 +77,9 @@ function improveImageQuality(imageData) {
 // Register employee
 // In the register button click event
 registerButton.addEventListener('click', async () => {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageData = canvas.toDataURL('image/png');
+    //ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData='20241004_171143.jpg'
+    //const imageData = canvas.toDataURL('image/png');
     console.log(imageData, 'imagedata');
 
     const employeeName = prompt("Enter employee name:");
