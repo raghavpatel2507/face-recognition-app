@@ -8,16 +8,22 @@ let faceMatcher;
 let recognitionActive = false;
 let personDetectionModel;
 
-// Access the webcam
-navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-    .then(stream => {
-        video.srcObject = stream;
-        console.log("Webcam access granted");
-    })
-    .catch(err => {
-        console.error("Error accessing the camera: ", err);
-        alert("Camera access denied. Please check your permissions.");
-    });
+// Access the webcam with high resolution
+navigator.mediaDevices.getUserMedia({ 
+    video: { 
+        facingMode: "user", 
+        width: { ideal: 1280 }, 
+        height: { ideal: 720 } 
+    } 
+})
+.then(stream => {
+    video.srcObject = stream;
+    console.log("Webcam access granted");
+})
+.catch(err => {
+    console.error("Error accessing the camera: ", err);
+    alert("Camera access denied. Please check your permissions.");
+});
 
 // Load models
 async function loadModels() {
@@ -33,49 +39,67 @@ async function loadModels() {
     console.log("COCO-SSD model loaded");
 }
 
-// Register employee
-registerButton.addEventListener('click', async () => {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    //const imageData='images/20241024_182903.jpg'
-    const imageData = canvas.toDataURL('image/png');
-    console.log(imageData,'imagedata')
-    const employeeName = prompt("Enter employee name:");
-
-    if (employeeName) {
+// Function to improve image quality
+function improveImageQuality(imageData) {
+    return new Promise((resolve) => {
         const img = new Image();
         img.src = imageData;
 
-        img.onload = async () => {
-           
-            const resizedCanvas = document.createElement('canvas');
-            const resizedCtx = resizedCanvas.getContext('2d');
-            resizedCanvas.width = 640;
-            resizedCanvas.height = 480;
-            resizedCtx.drawImage(img, 0, 0, resizedCanvas.width, resizedCanvas.height);
-           
-            const resizedImageData = resizedCanvas.toDataURL('image/png');
-            const processedImg = await faceapi.fetchImage(resizedImageData);
-            const detections = await faceapi.detectSingleFace(processedImg).withFaceLandmarks().withFaceDescriptor();
-       
-            if (detections) {
-                employees[employeeName] = resizedImageData;
-                displayEmployees();
-                recognizeButton.disabled = false;
-                console.log(`Employee registered: ${employeeName}`);
-               
-                // Update face matcher
-                faceMatcher = await createFaceMatcher();
-                console.log("Register updated with new employee");
-            } else {
-                console.warn(`No face detected for ${employeeName}`);
-                alert("No face detected. Please try again.");
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Apply contrast enhancement
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imageData.data;
+
+            // Simple contrast adjustment
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = Math.min(255, data[i] * 1.2);     // Red
+                data[i + 1] = Math.min(255, data[i + 1] * 1.2); // Green
+                data[i + 2] = Math.min(255, data[i + 2] * 1.2); // Blue
             }
+
+            ctx.putImageData(imageData, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
         };
 
         img.onerror = (error) => {
             console.error("Image loading error:", error);
-            alert("Error loading image. Please try again.");
+            resolve(imageData); // Fallback to original if error occurs
         };
+    });
+}
+
+// Register employee
+registerButton.addEventListener('click', async () => {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = canvas.toDataURL('image/png');
+    console.log(imageData, 'imagedata');
+    const employeeName = prompt("Enter employee name:");
+
+    if (employeeName) {
+        const improvedImageData = await improveImageQuality(imageData);
+
+        const processedImg = await faceapi.fetchImage(improvedImageData);
+        const detections = await faceapi.detectSingleFace(processedImg).withFaceLandmarks().withFaceDescriptor();
+
+        if (detections) {
+            employees[employeeName] = improvedImageData;
+            displayEmployees();
+            recognizeButton.disabled = false;
+            console.log(`Employee registered: ${employeeName}`);
+
+            // Update face matcher
+            faceMatcher = await createFaceMatcher();
+            console.log("Register updated with new employee");
+        } else {
+            console.warn(`No face detected for ${employeeName}`);
+            alert("No face detected. Please try again.");
+        }
     }
 });
 
@@ -132,7 +156,6 @@ recognizeButton.addEventListener('click', async () => {
 
 async function detectPerson() {
     console.log("Person detection started");
-   
     let lastDetection = false;
 
     while (recognitionActive) {
@@ -167,10 +190,10 @@ async function recognizeFaces() {
     if (detections.length > 0) {
         const resizedDetections = faceapi.resizeResults(detections, { width: video.width, height: video.height });
         const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
-       
+
         results.forEach(result => {
             const [label, distance] = result.toString().split(' ');
-            const name = parseFloat(distance.replace("(","").replace(")", "")) < 0.6 ? label : 'unknown';
+            const name = parseFloat(distance.replace("(", "").replace(")", "")) < 0.6 ? label : 'unknown';
             const li = document.createElement('li');
             li.textContent = name;
             recognizedList.appendChild(li);
@@ -181,6 +204,5 @@ async function recognizeFaces() {
         recognizedList.appendChild(li);
     }
 }
-
 
 loadModels();
