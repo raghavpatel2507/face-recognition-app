@@ -4,41 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Face Recognition System</title>
-    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
-    <script defer src="./face_api/face-api.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-    <script defer src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="./face_api/face-api.min.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            margin: 0;
-            padding: 20px;
+            background-color: #e0e0e0;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
+            height: 100vh;
+            margin: 0;
         }
 
         .container {
-            max-width: 800px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
             text-align: center;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         h1 {
+            color: #333;
             margin-bottom: 20px;
-            color: #4CAF50;
-        }
-
-        video {
-            border-radius: 10px;
-            border: 2px solid #4CAF50;
+            font-size: 24px;
         }
 
         .buttons {
@@ -46,68 +44,58 @@
         }
 
         button {
-            background-color: #4CAF50;
+            background-color: #007bff;
             color: white;
             border: none;
+            padding: 12px 25px;
             border-radius: 5px;
-            padding: 10px 20px;
-            margin: 0 10px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            margin: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+            font-size: 16px;
+            width: 100%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         button:hover {
-            background-color: #45a049;
+            background-color: #0056b3;
+            transform: translateY(-2px);
         }
 
-        .employee-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 0;
-            margin: 10px 0;
+        .message {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #555;
+            min-height: 40px; /* Ensure space for messages */
         }
 
-        .employee-list img {
-            width: 100px;
-            border-radius: 5px;
-            margin: 5px;
+        video {
+            display: none; /* Hide video element */
         }
 
-        .recognized-list {
-            list-style-type: none;
-            padding: 0;
-            text-align: center;
-        }
+        @media (max-width: 500px) {
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
 
-        .recognized-list li {
-            font-weight: bold;
-            color: #d80715;
-            margin: 5px 0;
-        }
-
-        .recognized-list li:empty {
-            color: #f44336;
+            h1 {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Face Recognition System</h1>
-        <video id="video" width="640" height="480" autoplay></video>
-       
+        <h1>Employee Face Recognition</h1>
         <div class="buttons">
-            <button id="register">Register Employee</button>
-            <button id="recognize" disabled>Start Recognition</button>
+            <button id="register">Register</button>
+            <button id="recognition">Start Recognition</button>
         </div>
-       
-        <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
-       
-        <h2>Registered Employees:</h2>
-        <div id="employees" class="employee-list"></div>
-
-        <h2>Recognized Employee:</h2>
-        <ul id="recognized-employee" class="recognized-list"></ul>
+        <div id="message" class="message"></div>
+        <video id="video" width="640" height="480" autoplay></video>
     </div>
+
+    <script type="module" src="app.js"></script>
 </body>
 </html>
