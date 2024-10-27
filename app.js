@@ -6,6 +6,7 @@ async function loadModels() {
     await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
     await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
     await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+    console.log("Models loaded successfully.");
 }
 
 async function setupCamera() {
@@ -23,10 +24,8 @@ async function registerEmployee() {
     const canvas = faceapi.createCanvasFromMedia(video);
     document.body.append(canvas);
 
-    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks()
-        .withFaceDescriptors();
-
+    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+    
     if (detections.length > 0) {
         const name = prompt("Enter employee name:");
         if (name) {
@@ -48,19 +47,17 @@ async function recognizeEmployee() {
 
     const labeledDescriptors = Object.keys(employees).map(name => new faceapi.LabeledFaceDescriptors(name, [employees[name]]));
 
-    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.4);
+    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
 
     setInterval(async () => {
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-            .withFaceLandmarks()
-            .withFaceDescriptors();
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
 
         if (detections.length > 0) {
             const results = detections.map(d => faceMatcher.findBestMatch(d.descriptor));
-            const recognizedNames = results.map(result => result.label).join(', ');
-            document.getElementById('message').innerText = `Recognized: ${recognizedNames}`;
-        } else {
-            document.getElementById('message').innerText = "No faces recognized.";
+            results.forEach((result) => {
+                const label = result.toString().split(' ')[0]; // Get only the name
+                document.getElementById('message').innerText = `Recognized: ${label}`;
+            });
         }
     }, 1000);
 }
