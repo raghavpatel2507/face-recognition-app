@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Recognition System</title>
+    <title>Employee Face Recognition System</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.10.0"></script>
     <script src="./face_api/face-api.min.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #e0e0e0;
+            background-color: #f4f4f4;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -70,7 +70,9 @@
         }
 
         video {
-            display: none; /* Hide video element */
+            width: 100%; /* Set video width */
+            border-radius: 10px; /* Optional: add some styling */
+            margin-top: 20px; /* Space between buttons and video */
         }
 
         @media (max-width: 500px) {
@@ -89,11 +91,11 @@
     <div class="container">
         <h1>Employee Face Recognition</h1>
         <div class="buttons">
-            <button id="register">Register</button>
+            <button id="register">Register Employee</button>
             <button id="recognition">Start Recognition</button>
         </div>
         <div id="message" class="message"></div>
-        <video id="video" width="640" height="480" autoplay></video>
+        <video id="video" width="640" height="480" autoplay style="display:none;"></video>
     </div>
 
     <script type="module" src="app.js"></script>

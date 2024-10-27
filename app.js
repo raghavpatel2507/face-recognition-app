@@ -10,7 +10,7 @@ async function loadModels() {
 }
 
 async function setupCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     video.srcObject = stream;
     return new Promise((resolve) => {
         video.onloadedmetadata = () => {
@@ -19,19 +19,27 @@ async function setupCamera() {
     });
 }
 
+async function capturePhoto() {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return await faceapi.detectAllFaces(canvas, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+}
+
 async function registerEmployee() {
     await setupCamera();
-    const canvas = faceapi.createCanvasFromMedia(video);
-    document.body.append(canvas);
+    const detections = await capturePhoto();
 
-    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
-    
     if (detections.length > 0) {
         const name = prompt("Enter employee name:");
-        if (name) {
+        if (name && !employees[name]) {
             const descriptors = detections.map(d => d.descriptor);
             employees[name] = descriptors[0]; // Store only the first descriptor
             document.getElementById('message').innerText = `Employee ${name} registered.`;
+        } else if (employees[name]) {
+            document.getElementById('message').innerText = "Employee already registered.";
         }
     } else {
         document.getElementById('message').innerText = "No face detected. Please try again.";
@@ -40,17 +48,14 @@ async function registerEmployee() {
 
 async function recognizeEmployee() {
     await setupCamera();
-    const canvas = faceapi.createCanvasFromMedia(video);
-    document.body.append(canvas);
-
     isRecognizing = true;
 
     const labeledDescriptors = Object.keys(employees).map(name => new faceapi.LabeledFaceDescriptors(name, [employees[name]]));
 
-    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.4);
 
     setInterval(async () => {
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+        const detections = await capturePhoto();
 
         if (detections.length > 0) {
             const results = detections.map(d => faceMatcher.findBestMatch(d.descriptor));
